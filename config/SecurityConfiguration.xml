@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <bootstrap>
+        <uci>sensiblethings@miun.se/bootstrap</uci>
+        <ip></ip>
+        <port>9009</port>
+    </bootstrap>
+    
+    <keyStore>
+        <name>KeyStore.db</name>
+        <directory>resources/</directory>
+    </keyStore>
+    
+    <security>
+        <level>1</level>
+        <description>Lower security level</description>
+        <symmetric>
+			<algorithm>AES</algorithm>
+			<mode>AES/CBC/PKCS5Padding</mode>
+			<key>
+			    <length>128</length>
+			    <lifetime>86400000</lifetime>
+			</key>
+        </symmetric>
+        
+        <asymmetric>
+            <algorithm>RSA</algorithm>
+            <key>
+                <length>1024</length>
+                <lifetime>31536000000</lifetime>
+            </key>
+        </asymmetric>
+        
+        <signature>
+            <algorithm>SHA1withRSA</algorithm>
+        </signature>
+    </security>
+	
+        <security>
+        <level>2</level>
+        <description>Low security level</description>
+        <symmetric>
+			<algorithm>ARCFOUR</algorithm>
+			<mode>ARCFOUR</mode>
+			<key>
+			    <length>128</length>
+			    <lifetime>86400000</lifetime>
+			</key>
+        </symmetric>
+        
+        <asymmetric>
+            <algorithm>RSA</algorithm>
+            <key>
+                <length>1024</length>
+                <lifetime>31536000000</lifetime>
+            </key>
+        </asymmetric>
+        
+        <signature>
+            <algorithm>SHA1withRSA</algorithm>
+        </signature>
+    </security>
+    
+	<security>
+		<level>3</level>
+		<description>Medium security level</description>
+		<symmetric>
+			<algorithm>AES</algorithm>
+			<mode>AES/CBC/PKCS5Padding</mode>
+			<key>
+				<length>192</length>
+				<lifetime>3600000</lifetime>
+			</key>
+		</symmetric>
+
+		<asymmetric>
+			<algorithm>RSA</algorithm>
+			<key>
+				<length>1024</length>
+				<lifetime>31536000000</lifetime>
+			</key>
+		</asymmetric>
+
+		<signature>
+			<algorithm>SHA256withRSA</algorithm>
+		</signature>
+	</security>
+
+	<security>
+		<level>5</level>
+		<description>High security level</description>
+		<symmetric>
+			<algorithm>AES</algorithm>
+			<mode>AES/CBC/PKCS5Padding</mode>
+			<key>
+				<length>256</length>
+				<lifetime>300000</lifetime>
+			</key>
+		</symmetric>
+
+		<asymmetric>
+			<algorithm>RSA</algorithm>
+			<key>
+				<length>2048</length>
+				<lifetime>31536000000</lifetime>
+			</key>
+		</asymmetric>
+
+		<signature>
+			<algorithm>SHA512withRSA</algorithm>
+		</signature>
+	</security>
+</configuration>

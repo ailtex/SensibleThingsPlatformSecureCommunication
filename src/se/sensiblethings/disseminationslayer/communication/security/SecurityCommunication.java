@@ -1,26 +1,25 @@
 package se.sensiblethings.disseminationslayer.communication.security;
 
-import se.sensiblethings.addinlayer.extensions.security.communication.SecureMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateAcceptedResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateExchangeMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateExchangeResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateRequestMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CommunicationShiftMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.RegistrationRequestMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.RegistrationResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.SessionKeyExchangeMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.SessionKeyResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.configuration.SecurityConfiguration;
 import se.sensiblethings.disseminationlayer.communication.Communication;
 import se.sensiblethings.disseminationlayer.communication.DestinationNotReachableException;
 import se.sensiblethings.disseminationlayer.communication.Message;
 import se.sensiblethings.disseminationlayer.communication.rudp.RUDPCommunication;
 import se.sensiblethings.disseminationlayer.disseminationcore.MessageListener;
+import se.sensiblethings.disseminationslayer.communication.security.configuration.SecurityConfiguration;
 import se.sensiblethings.disseminationslayer.communication.security.messagehandler.MessageHandler;
 import se.sensiblethings.interfacelayer.SensibleThingsNode;
-
 import se.sensiblethings.disseminationslayer.communication.security.messagehandler.SecurityManager;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateAcceptedResponseMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateExchangeMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateExchangeResponseMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateRequestMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateResponseMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CommunicationShiftMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.RegistrationRequestMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.RegistrationResponseMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.SecureMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.SessionKeyExchangeMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.SessionKeyResponseMessage;
 
 public class SecurityCommunication extends Communication implements MessageListener{
 	

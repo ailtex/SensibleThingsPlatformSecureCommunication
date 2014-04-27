@@ -35,15 +35,14 @@ import javax.crypto.spec.IvParameterSpec;
 import org.bouncycastle.crypto.tls.SecurityParameters;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 
-import se.sensiblethings.addinlayer.extensions.security.certificate.CertificateOperations;
-import se.sensiblethings.addinlayer.extensions.security.communication.SecureMessage;
-import se.sensiblethings.addinlayer.extensions.security.configuration.SecurityConfiguration;
-import se.sensiblethings.addinlayer.extensions.security.encryption.AsymmetricEncryption;
-import se.sensiblethings.addinlayer.extensions.security.keystore.KeyStoreJCEKS;
-import se.sensiblethings.addinlayer.extensions.security.keystore.IKeyStore;
-import se.sensiblethings.addinlayer.extensions.security.messagedigest.MessageDigestOperations;
-import se.sensiblethings.addinlayer.extensions.security.signature.SignatureOperations;
-import se.sensiblethings.addinlayer.extensions.security.encryption.SymmetricEncryption;
+import se.sensiblethings.disseminationslayer.communication.security.certificate.CertificateOperations;
+import se.sensiblethings.disseminationslayer.communication.security.configuration.SecurityConfiguration;
+import se.sensiblethings.disseminationslayer.communication.security.encryption.AsymmetricEncryption;
+import se.sensiblethings.disseminationslayer.communication.security.encryption.SymmetricEncryption;
+import se.sensiblethings.disseminationslayer.communication.security.keystore.KeyStoreJCEKS;
+import se.sensiblethings.disseminationslayer.communication.security.messagedigest.MessageDigestOperations;
+import se.sensiblethings.disseminationslayer.communication.security.messages.SecureMessage;
+import se.sensiblethings.disseminationslayer.communication.security.signature.SignatureOperations;
 import se.sensiblethings.interfacelayer.SensibleThingsNode;
 
 public class SecurityManager {

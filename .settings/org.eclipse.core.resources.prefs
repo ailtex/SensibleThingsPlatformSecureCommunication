@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+encoding//src/se/sensiblethings/disseminationslayer/communication/security/certificate/CertificateOperations.java=UTF-8
+encoding//src/se/sensiblethings/disseminationslayer/communication/security/configuration/SecurityConfiguration.java=UTF-8
+encoding//src/se/sensiblethings/disseminationslayer/communication/security/encryption/AsymmetricEncryption.java=UTF-8
+encoding//src/se/sensiblethings/disseminationslayer/communication/security/encryption/SymmetricEncryption.java=UTF-8
+encoding//src/se/sensiblethings/disseminationslayer/communication/security/messagehandler/MessageHandler.java=UTF-8

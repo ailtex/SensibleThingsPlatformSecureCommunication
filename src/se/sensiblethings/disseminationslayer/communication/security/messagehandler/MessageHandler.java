@@ -17,28 +17,6 @@ import org.apache.commons.lang.SerializationUtils;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 import org.bouncycastle.util.encoders.Base64;
 
-import se.sensiblethings.addinlayer.extensions.security.communication.ResponsePayload;
-import se.sensiblethings.addinlayer.extensions.security.communication.SecureMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateAcceptedResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateExchangeMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateExchangeResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateRequestMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CertificateResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.RegistrationRequestMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.RegistrationResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.SessionKeyExchangeMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.SessionKeyResponseMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.message.CommunicationShiftMessage;
-import se.sensiblethings.addinlayer.extensions.security.communication.payload.CertificateExchangePayload;
-import se.sensiblethings.addinlayer.extensions.security.communication.payload.CertificatePayload;
-import se.sensiblethings.addinlayer.extensions.security.communication.payload.CertificateRequestPayload;
-import se.sensiblethings.addinlayer.extensions.security.communication.payload.CertificateResponsePayload;
-import se.sensiblethings.addinlayer.extensions.security.communication.payload.RegistrationPayload;
-import se.sensiblethings.addinlayer.extensions.security.communication.payload.SecretKeyPayload;
-import se.sensiblethings.addinlayer.extensions.security.configuration.SecurityConfiguration;
-import se.sensiblethings.addinlayer.extensions.security.encryption.AsymmetricEncryption;
-import se.sensiblethings.addinlayer.extensions.security.encryption.SymmetricEncryption;
-import se.sensiblethings.addinlayer.extensions.security.signature.SignatureOperations;
 import se.sensiblethings.disseminationlayer.communication.Communication;
 import se.sensiblethings.disseminationlayer.communication.DestinationNotReachableException;
 import se.sensiblethings.disseminationlayer.communication.Message;
@@ -46,6 +24,24 @@ import se.sensiblethings.disseminationlayer.communication.rudp.RUDPCommunication
 import se.sensiblethings.disseminationlayer.communication.ssl.SslCommunication;
 import se.sensiblethings.disseminationlayer.disseminationcore.DisseminationCore;
 import se.sensiblethings.disseminationlayer.lookupservice.kelips.KelipsLookup;
+import se.sensiblethings.disseminationslayer.communication.security.configuration.SecurityConfiguration;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateAcceptedResponseMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateExchangeMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateExchangeResponseMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateRequestMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateResponseMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.CommunicationShiftMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.RegistrationRequestMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.RegistrationResponseMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.SecureMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.SessionKeyExchangeMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.SessionKeyResponseMessage;
+import se.sensiblethings.disseminationslayer.communication.security.messages.payload.CertificateExchangePayload;
+import se.sensiblethings.disseminationslayer.communication.security.messages.payload.CertificatePayload;
+import se.sensiblethings.disseminationslayer.communication.security.messages.payload.CertificateResponsePayload;
+import se.sensiblethings.disseminationslayer.communication.security.messages.payload.RegistrationPayload;
+import se.sensiblethings.disseminationslayer.communication.security.messages.payload.ResponsePayload;
+import se.sensiblethings.disseminationslayer.communication.security.messages.payload.SecretKeyPayload;
 import se.sensiblethings.interfacelayer.SensibleThingsNode;
 import se.sensiblethings.interfacelayer.SensibleThingsPlatform;
 
@@ -480,7 +476,7 @@ public class MessageHandler {
 
 	/**
 	 * Exchange Session Key
-	 * (2.2) If (IDD, KS, Lifetime) temporary key store doesn’t exist, or Lifetime is invalid
+	 * (2.2) If (IDD, KS, Lifetime) temporary key store doesn���t exist, or Lifetime is invalid
 	 *       C->D : E(PUD, KS) || E(PRC, H ([KS])) || E(KS, IDC || N1) || CertificateC
 	 *              
 	 * @param toUci
@@ -660,7 +656,7 @@ public class MessageHandler {
 	}
 	
 	/**
-	 * If (IDD, PUD, Validation) doesn’t exist or invalid, Exchange certificate
+	 * If (IDD, PUD, Validation) doesn���t exist or invalid, Exchange certificate
 	 * 
 	 * (3.1) C->D : Payload || E(PRC,[H(payload)])
 	 *            Payload = IDC || CertificateC || TS1 
