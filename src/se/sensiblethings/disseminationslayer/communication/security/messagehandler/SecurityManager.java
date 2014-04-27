@@ -181,20 +181,6 @@ public class SecurityManager {
 				msgs.add(sm);
 			}
 			
-//			Iterator<SecureMessage> it = postOffice.get(toUci).iterator();
-//			while(it.hasNext()){
-//				SecureMessage sm = it.next();
-//				byte[] message = sm.getPayload();
-//			
-//				sm.setPayload(symmetricEncryptMessage(toUci, message, config.getSymmetricMode()));
-//				sm.setSignature(signMessage(message, config.getSignatureAlgorithm()));
-//				sm.setSignatureAlgorithm(config.getSignatureAlgorithm());
-//				
-//				byte[] iv = getIVparameter();
-//				if(iv != null){
-//					sm.setIv(symmetricEncryptIVParameter(toUci, iv));
-//				}
-//			}
 		}
 	}
 	

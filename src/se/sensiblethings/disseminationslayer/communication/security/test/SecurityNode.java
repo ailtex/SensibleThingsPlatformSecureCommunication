@@ -1,6 +1,7 @@
 package se.sensiblethings.disseminationslayer.communication.security.test;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -8,7 +9,6 @@ import java.util.Random;
 
 import org.bouncycastle.util.encoders.Base64;
 
-import se.sensiblethings.addinlayer.extensions.security.SecurityExtension;
 import se.sensiblethings.disseminationlayer.communication.Communication;
 import se.sensiblethings.disseminationlayer.communication.ssl.SslCommunication;
 import se.sensiblethings.disseminationlayer.lookupservice.LookupService;
@@ -21,9 +21,8 @@ import se.sensiblethings.interfacelayer.SensibleThingsPlatform;
 public class SecurityNode implements SensibleThingsListener, Runnable{
 	
 	SensibleThingsPlatform platform = null;
-	SecurityExtension secureExt = null;
 
-	final static String myUci = "sensiblethings@miun.se/Node#11";
+	final static String myUci = "sensiblethings@miun.se/Node1";
 	
 	
 	public static void main(String arg[]){
@@ -39,7 +38,7 @@ public class SecurityNode implements SensibleThingsListener, Runnable{
 		KelipsLookup.bootstrapIp = getLocalHostAddress();
 		KelipsLookup.bootstrap = false;
 		
-		SecurityCommunication.initCommunicationPort = 49860;
+		SecurityCommunication.initCommunicationPort = 49890;
 		SecurityCommunication.uci = myUci;
 		platform = new SensibleThingsPlatform(LookupService.KELIPS, Communication.SECURITY_COM, this);
 		
@@ -48,15 +47,17 @@ public class SecurityNode implements SensibleThingsListener, Runnable{
 	@Override
 	public void run(){
     	try {
-    		System.out.println("[Node#11 Node] booted! ");
+    		System.out.println("[Node#1 Node] booted! ");
     		
     		platform.register(myUci);
     		
     		platform.resolve("sensiblethings@miun.se/bootstrap");
     		
-    		KelipsLookup.bootstrap = true;
+			// when jvm exist, delete the keyStore file
+			File keystore = new File("resources/sensiblethings@miun.se_Node1_KeyStore.db");
+			keystore.deleteOnExit();
     		
-	        System.out.println("[Node#11 Node] Press any key to shut down");
+	        System.out.println("[Node#1 Node] Press any key to shut down");
 	        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));    	
 			in.readLine();
 			
@@ -81,7 +82,7 @@ public class SecurityNode implements SensibleThingsListener, Runnable{
 
 	@Override
 	public void resolveResponse(String uci, SensibleThingsNode node) {
-		System.out.println("[Node#11 : ResolveResponse] " + uci + ": " + node);
+		System.out.println("[Node#1 : ResolveResponse] " + uci + ": " + node);
 		
 		platform.set(uci, "Hello world", node);
 	}

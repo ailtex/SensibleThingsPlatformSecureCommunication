@@ -10,9 +10,6 @@ import java.util.Random;
 import org.bouncycastle.util.encoders.Base64;
 
 import se.sensiblethings.addinlayer.AddInManager;
-import se.sensiblethings.addinlayer.extensions.security.SecurityExtension;
-import se.sensiblethings.addinlayer.extensions.security.SecurityListener;
-import se.sensiblethings.addinlayer.extensions.security.configuration.SecurityConfiguration;
 import se.sensiblethings.disseminationlayer.communication.Communication;
 import se.sensiblethings.disseminationlayer.communication.rudp.RUDPCommunication;
 import se.sensiblethings.disseminationlayer.communication.ssl.SslCommunication;
@@ -55,6 +52,10 @@ public class SecurityBootstrap implements SensibleThingsListener, Runnable{
     		
     		platform.register(myUci);
     		
+    		// when jvm exist, delete the keyStore file
+			File keystore = new File("resources/sensiblethings@miun.se_bootstrap_KeyStore.db");
+			keystore.deleteOnExit();
+    					
 	        System.out.println("[Bootstrap Node] Press any key to shut down");
 	        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));    	
 			in.readLine();

@@ -20,7 +20,9 @@ import org.bouncycastle.util.encoders.Base64;
 import se.sensiblethings.disseminationlayer.communication.Communication;
 import se.sensiblethings.disseminationlayer.communication.DestinationNotReachableException;
 import se.sensiblethings.disseminationlayer.communication.Message;
+import se.sensiblethings.disseminationlayer.communication.MessageSerializer;
 import se.sensiblethings.disseminationlayer.communication.rudp.RUDPCommunication;
+import se.sensiblethings.disseminationlayer.communication.serializer.ObjectSerializer;
 import se.sensiblethings.disseminationlayer.communication.ssl.SslCommunication;
 import se.sensiblethings.disseminationlayer.disseminationcore.DisseminationCore;
 import se.sensiblethings.disseminationlayer.lookupservice.kelips.KelipsLookup;
@@ -52,7 +54,10 @@ public class MessageHandler {
 	SecurityManager securityManager = null;
 	SecurityConfiguration config = null;
 	
+	MessageSerializer messageSerializer = new ObjectSerializer();
+	
 	Map<String, Vector<SecureMessage>> postOffice = null;
+	Map<String, String> uciCache = null;
 	
 	public static final char[] password = "password".toCharArray();
 	
@@ -65,6 +70,7 @@ public class MessageHandler {
 		this.config = config;
 		
 		postOffice = new HashMap<String, Vector<SecureMessage>>();
+		uciCache = new HashMap<String, String>();
 	}
 	
 	public void setSecuiryConfiguraton(SecurityConfiguration config){
@@ -85,6 +91,7 @@ public class MessageHandler {
 			SensibleThingsNode bootstrapNode = new SensibleThingsNode(KelipsLookup.bootstrapIp, 
 					Integer.valueOf(config.getBootstrapPort()));
 			
+			addToUciCache(bootstrapNode.getAddress(), config.getBootstrapUci());
 //			createSslConnection(config.getBootstrapUci(),bootstrapNode);
 
 			register(config.getBootstrapUci(), bootstrapNode);
@@ -112,14 +119,6 @@ public class MessageHandler {
 	    // the request node can just change itself communication type
 		
 		sendMessage(message);
-		/*
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
 		
 		transformCommunication("SSL");
 		
@@ -392,15 +391,15 @@ public class MessageHandler {
 			
 			sendMessage(carm);
 			
-			// send the communication shift message 
-			CommunicationShiftMessage csm = new CommunicationShiftMessage(crm.fromUci, securityManager.getMyUci(), 
-					crm.getFromNode(), communication.getLocalSensibleThingsNode());
-			csm.setSignal("RUDP");
-			
-			sendMessage(csm);
-			
-			transformCommunication(csm.getSignal());
-			
+//			// send the communication shift message 
+//			CommunicationShiftMessage csm = new CommunicationShiftMessage(crm.fromUci, securityManager.getMyUci(), 
+//					crm.getFromNode(), communication.getLocalSensibleThingsNode());
+//			csm.setSignal("RUDP");
+//			
+//			sendMessage(csm);
+//			
+//			transformCommunication(csm.getSignal());
+//			
 			System.out.println("Registration finished!");
 			
 		}else{
@@ -448,7 +447,8 @@ public class MessageHandler {
 				toNode, communication.getLocalSensibleThingsNode());
 		
 		secureMessage.setPayload(SerializationUtils.serialize(message));
-				
+//		secureMessage.setPayload(messageSerializer.serializeMessage(message));
+		
 		if(securityManager.isSymmetricKeyValid(toUci, config.getSymmetricKeyLifeTime())){
 			sendToPostOffice(secureMessage);
 			securityManager.encapsulateSecueMessage(postOffice, toUci, password, password);
@@ -466,8 +466,12 @@ public class MessageHandler {
 	public Message handleSecureMessage(SecureMessage sm){
 		byte[] signature = sm.getSignature();
 		byte[] payload = securityManager.decapsulateSecureMessage(sm, password);
+		
+		addToUciCache(sm.getFromNode().getAddress(), sm.fromUci);
+		
 		if(securityManager.verifySignature(payload, signature, sm.fromUci, config.getSignatureAlgorithm())){
-			return (Message)SerializationUtils.deserialize(payload);
+			Message msg = (Message)SerializationUtils.deserialize(payload);
+			return msg;
 		}else{
 			return null;
 		}
@@ -777,8 +781,17 @@ public class MessageHandler {
 		}
 	}
 	
+	public void addToUciCache(String address, String uci){
+		if(uciCache.containsKey(address)){
+			uciCache.remove(address);
+		}
+		uciCache.put(address, uci);
+	}
 
-
+	public String getUciFromCache(String address){
+		return uciCache.get(address);
+	}
+	
 	private void sendToPostOffice(SecureMessage sm){
 		String toUci = sm.toUci;
 		if(postOffice.containsKey(toUci)){
@@ -791,18 +804,14 @@ public class MessageHandler {
 	
 	private void sendOutSecureMessage(String toUci) {
 		if(postOffice.containsKey(toUci)){
-			Iterator<SecureMessage> it = postOffice.get(toUci).iterator();
-			while(it.hasNext()){
-				sendMessage(it.next());
+			Vector<SecureMessage> msgs = postOffice.get(toUci);
+			for(int i = 0 ; i < msgs.size(); i++){
+				SecureMessage sm = msgs.get(i);
+				msgs.remove(i);
 				
-				// let the sender wait every 20ms 
-//				try {
-//					Thread.sleep(20);
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
+				sendMessage(sm);
 			}
-			postOffice.get(toUci).removeAllElements();
+			
 		}
 	}
 	

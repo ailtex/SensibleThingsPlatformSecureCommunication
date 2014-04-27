@@ -1,10 +1,16 @@
 package se.sensiblethings.disseminationslayer.communication.security;
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+
 import se.sensiblethings.disseminationlayer.communication.Communication;
 import se.sensiblethings.disseminationlayer.communication.DestinationNotReachableException;
 import se.sensiblethings.disseminationlayer.communication.Message;
 import se.sensiblethings.disseminationlayer.communication.rudp.RUDPCommunication;
 import se.sensiblethings.disseminationlayer.disseminationcore.MessageListener;
+import se.sensiblethings.disseminationlayer.lookupservice.kelips.KelipsLookup;
 import se.sensiblethings.disseminationslayer.communication.security.configuration.SecurityConfiguration;
 import se.sensiblethings.disseminationslayer.communication.security.messagehandler.MessageHandler;
 import se.sensiblethings.interfacelayer.SensibleThingsNode;
@@ -29,6 +35,8 @@ public class SecurityCommunication extends Communication implements MessageListe
 	private MessageHandler messageHandler = null;
 	
 	private int communicationPort = 0;
+	private SensibleThingsNode localSensibleThingsNode = null;
+	
 	public static int initCommunicationPort = 0;
 	
 	public static String uci = null;
@@ -41,7 +49,9 @@ public class SecurityCommunication extends Communication implements MessageListe
 		// set up the communication with rudp
 		RUDPCommunication.initCommunicationPort = initCommunicationPort;
 		communication = new RUDPCommunication();
+		this.localSensibleThingsNode = communication.getLocalSensibleThingsNode();
 		
+		this.communication.setMessageListeners(super.getMessageListeners());
 		
 		//Register our own message types in the post office
 		communication.registerMessageListener(CommunicationShiftMessage.class.getName(), this);
@@ -61,11 +71,13 @@ public class SecurityCommunication extends Communication implements MessageListe
 		securityManager = new SecurityManager(config);
 		messageHandler = new MessageHandler(communication, securityManager, config);
 		
+		
 		if(uci != null){
 			messageHandler.securityRegister(uci);
 		}else{
 			System.err.println("[Security Communicaiton] UCI is null !");
 		}
+		
 		
 		// wait for the registration
 		try {
@@ -80,7 +92,24 @@ public class SecurityCommunication extends Communication implements MessageListe
 	@Override
 	public void sendMessage(Message message)
 			throws DestinationNotReachableException {
-		messageHandler.sendSecureMassage(message, message.toUci, message.getToNode());
+//		System.out.println("[Send Message] : " + message);
+		
+		// if this message will be sent to itself
+		// it won't be encrypt
+		if(message.getToNode().getAddress().equals(communication.getLocalSensibleThingsNode().getAddress())){
+			communication.sendMessage(message);
+		}else {
+			// if this message is sent to bootstrap
+			// then adds the toUci in this message
+			
+			if(message.toUci == null){
+				String toUci = messageHandler.getUciFromCache(message.getToNode().getAddress());
+				message.toUci = toUci;
+//				System.out.println("[Append UCI] " + message.toUci + " --> " + message);
+			}
+			
+			messageHandler.sendSecureMassage(message, message.toUci, message.getToNode());
+		}
 		
 	}
 
@@ -91,8 +120,7 @@ public class SecurityCommunication extends Communication implements MessageListe
 
 	@Override
 	public SensibleThingsNode getLocalSensibleThingsNode() {
-		// TODO Auto-generated method stub
-		return null;
+		return localSensibleThingsNode;
 	}
 
 	@Override
@@ -139,6 +167,7 @@ public class SecurityCommunication extends Communication implements MessageListe
 			
 		}else if(message instanceof SecureMessage){
 			SecureMessage sm = (SecureMessage)message;
+			
 			Message msg = messageHandler.handleSecureMessage(sm);
 			
 			//Send the message to the "PostOffice"
@@ -147,5 +176,5 @@ public class SecurityCommunication extends Communication implements MessageListe
 		}
 		
 	}
-
+	
 }
