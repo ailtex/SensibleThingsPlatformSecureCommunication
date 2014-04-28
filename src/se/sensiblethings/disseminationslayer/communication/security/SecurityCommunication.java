@@ -9,6 +9,7 @@ import se.sensiblethings.disseminationlayer.communication.Communication;
 import se.sensiblethings.disseminationlayer.communication.DestinationNotReachableException;
 import se.sensiblethings.disseminationlayer.communication.Message;
 import se.sensiblethings.disseminationlayer.communication.rudp.RUDPCommunication;
+import se.sensiblethings.disseminationlayer.disseminationcore.GetMessage;
 import se.sensiblethings.disseminationlayer.disseminationcore.MessageListener;
 import se.sensiblethings.disseminationlayer.lookupservice.kelips.KelipsLookup;
 import se.sensiblethings.disseminationslayer.communication.security.configuration.SecurityConfiguration;
@@ -78,14 +79,12 @@ public class SecurityCommunication extends Communication implements MessageListe
 			System.err.println("[Security Communicaiton] UCI is null !");
 		}
 		
-		
 		// wait for the registration
 		try {
-			Thread.sleep(3000);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
 		
 	}
 	
@@ -101,10 +100,15 @@ public class SecurityCommunication extends Communication implements MessageListe
 		}else {
 			// if this message is sent to bootstrap
 			// then adds the toUci in this message
-			
 			if(message.toUci == null){
-				String toUci = messageHandler.getUciFromCache(message.getToNode().getAddress());
-				message.toUci = toUci;
+				message.toUci = messageHandler.getUciFromCache(message.getToNode().getAddress());
+				
+				if(message instanceof GetMessage){
+					message.toUci = ((GetMessage) message).uci;
+					
+					System.out.println(((GetMessage) message).uci + " " + message);
+					System.out.println(((GetMessage) message).toUci);
+				}
 //				System.out.println("[Append UCI] " + message.toUci + " --> " + message);
 			}
 			

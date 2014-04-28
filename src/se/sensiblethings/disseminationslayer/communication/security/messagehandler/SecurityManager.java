@@ -325,7 +325,11 @@ public class SecurityManager {
 	}
 	
 	public boolean hasCertificate(String uci){
+		if(uci == null){
+			return false;
+		}
 		return keyStore.hasCertificate(uci);
+		
 	}
 	
 	@SuppressWarnings("deprecation")

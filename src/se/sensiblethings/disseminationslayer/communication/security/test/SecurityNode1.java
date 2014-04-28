@@ -18,7 +18,7 @@ import se.sensiblethings.interfacelayer.SensibleThingsListener;
 import se.sensiblethings.interfacelayer.SensibleThingsNode;
 import se.sensiblethings.interfacelayer.SensibleThingsPlatform;
 
-public class SecurityNode implements SensibleThingsListener, Runnable{
+public class SecurityNode1 implements SensibleThingsListener, Runnable{
 	
 	SensibleThingsPlatform platform = null;
 
@@ -26,11 +26,11 @@ public class SecurityNode implements SensibleThingsListener, Runnable{
 	
 	
 	public static void main(String arg[]){
-		SecurityNode application = new SecurityNode();
+		SecurityNode1 application = new SecurityNode1();
 		application.run();
 	}
 
-	public SecurityNode(){
+	public SecurityNode1(){
 		
 		//Create the platform itself with a SensibleThingsListener
 		//KelipsLookup.bootstrap = true;
@@ -51,7 +51,7 @@ public class SecurityNode implements SensibleThingsListener, Runnable{
     		
     		platform.register(myUci);
     		
-    		platform.resolve("sensiblethings@miun.se/bootstrap");
+    		platform.resolve("sensiblethings@miun.se/Node2");
     		
 			// when jvm exist, delete the keyStore file
 			File keystore = new File("resources/sensiblethings@miun.se_Node1_KeyStore.db");
@@ -76,7 +76,7 @@ public class SecurityNode implements SensibleThingsListener, Runnable{
 	@Override
 	public void getResponse(String uci, String value,
 			SensibleThingsNode fromNode) {
-		
+		System.out.println("[Node#1 : Get Response] " + uci + ": " + fromNode + ": " + value);
 		
 	}
 
@@ -84,18 +84,18 @@ public class SecurityNode implements SensibleThingsListener, Runnable{
 	public void resolveResponse(String uci, SensibleThingsNode node) {
 		System.out.println("[Node#1 : ResolveResponse] " + uci + ": " + node);
 		
-		platform.set(uci, "Hello world", node);
+		platform.get(uci, node);
 	}
 
 	@Override
 	public void getEvent(SensibleThingsNode source, String uci) {
-		// TODO Auto-generated method stub
+		System.out.println("[Node#1 : GetEvent] " + uci + ": " + source);
 		
 	}
 
 	@Override
 	public void setEvent(SensibleThingsNode fromNode, String uci, String value) {
-		// TODO Auto-generated method stub
+		System.out.println("[Node#1 : SetEvent] " + uci + ": " + value + " : " + fromNode);
 		
 	}
 	
