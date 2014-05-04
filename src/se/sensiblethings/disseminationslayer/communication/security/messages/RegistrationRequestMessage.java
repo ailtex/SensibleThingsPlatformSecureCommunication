@@ -1,8 +1,5 @@
 package se.sensiblethings.disseminationslayer.communication.security.messages;
 
-import java.util.Date;
-
-import se.sensiblethings.disseminationlayer.communication.Message;
 import se.sensiblethings.interfacelayer.SensibleThingsNode;
 
 public class RegistrationRequestMessage extends SecureMessage{

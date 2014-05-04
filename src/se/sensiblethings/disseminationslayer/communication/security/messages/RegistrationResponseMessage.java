@@ -2,7 +2,6 @@ package se.sensiblethings.disseminationslayer.communication.security.messages;
 
 import java.security.cert.Certificate;
 
-import se.sensiblethings.disseminationlayer.communication.Message;
 import se.sensiblethings.interfacelayer.SensibleThingsNode;
 
 public class RegistrationResponseMessage extends SecureMessage{

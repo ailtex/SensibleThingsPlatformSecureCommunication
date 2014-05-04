@@ -10,15 +10,12 @@ package se.sensiblethings.disseminationslayer.communication.security.certificate
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.math.BigInteger;
-import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
 import java.security.Security;
 import java.security.SignatureException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -31,10 +28,8 @@ import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSet;
-import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.Attribute;
-import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.GeneralName;
@@ -43,7 +38,6 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.X509Extension;
 import org.bouncycastle.asn1.x509.X509Extensions;
-import org.bouncycastle.asn1.x509.X509Name;
 import org.bouncycastle.x509.X509V1CertificateGenerator;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
@@ -51,20 +45,39 @@ import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 import org.bouncycastle.openssl.PEMWriter;
 
-
+/**
+ * CertificateOperations.java
+ * 
+ * This class specify the all operations concerning about certificate.
+ * The <code> SIGNATURE_ALGORITHM </code> is predefined as "SHA256WithRSAEncryption".
+ * And many functions are under the BouncyCastle libraries. Though the poor documentations of BouncyCastle,
+ * the libraries supported by JDK are more difficult and some are old-fashioned.
+ * 
+ * @author Hao
+ *
+ */
 public class CertificateOperations {
-	
-	private static final String SIGNATURE_ALGORITHM = "SHA256WithRSAEncryption";
 	/**
+	 * The signature algorithm
+	 */
+	private static final String SIGNATURE_ALGORITHM = "SHA256WithRSAEncryption";
+	
+	/**
+	 * Generate the Self Signed X509V1 Certificate (Root Certificate)
+	 * 
 	 * There is one solution to generate the X509 certificate without using the Bouncy Castle
 	 * Detail can be found from below (Actually it's similar to doSelfCert from the keytool souce code):</p>
-	 * 1, http://stackoverflow.com/questions/1615871/creating-an-x509-certificate-in-java-without-bouncycastle</p>
-	 * 2, http://bfo.com/blog/2011/03/08/odds_and_ends_creating_a_new_x_509_certificate.html
+	 * @see <a href="http://stackoverflow.com/questions/1615871/creating-an-x509-certificate-in-java-without-bouncycastle">
+	 * 1, creating-an-x509-certificate-in-java-without-bouncycastle </a></p>
+	 * @see <a href="http://bfo.com/blog/2011/03/08/odds_and_ends_creating_a_new_x_509_certificate.html">
+	 * 2,odds_and_ends_creating_a_new_x_509_certificate</a></p>
 	 * While sun.security.* package is required which has some contradiction with support/ stable principle
 	 * So here decide to use Bouncy Castle to implement this
 	 * 
-	 * @param certificate
-	 * @return 
+	 * @param subjectName The specification of X.500 distinguished name
+	 * @param keyPair The RSA key pair
+	 * @param lifeTime The lifetime of this certificate
+	 * @return X509 version 1 certificate(a root certificate)
 	 */
 	@SuppressWarnings("deprecation")
 	public static X509Certificate generateSelfSignedcertificate(String subjectName, KeyPair keyPair, long lifeTime){
@@ -78,7 +91,7 @@ public class CertificateOperations {
 		
 		certGen.setSerialNumber(BigInteger.valueOf(System.currentTimeMillis()));
 		
-		// The specification of X.500 distinguished name
+		// 
 		// C Country
 		// CN Common name
 		// DC Domain component
@@ -120,7 +133,15 @@ public class CertificateOperations {
 	    return cert;
 	}
 	
-	
+	/**
+	 * Generate the PKCS10 Certificate Signing Request
+	 * 
+	 * The extra extension part is not fully used here, as this protocol do not need them.
+	 * 
+	 * @param subjectName The subject name of in this request
+	 * @param keyPair The RSA key pair
+	 * @return PKCS10 certificate request
+	 */
 	@SuppressWarnings({ "deprecation", "unchecked" })
 	public static PKCS10CertificationRequest generateCertificateSigningRequest(String subjectName, KeyPair keyPair){
 		// add BouncyCastal to the security provider
@@ -171,6 +192,22 @@ public class CertificateOperations {
 		return null;
 	}
 	
+	/**
+	 * Sign the Certificate request and generate the certificate chain including the Bootstrap Root certificate and 
+	 * applicants' certificate signed by Bootstrap.
+	 * 
+	 * @param request PKCS10 Certificate request from the applicant
+	 * @param rootCert Bootstrap's root certificate
+	 * @param rootPair Bootstrap's RSA key pair
+	 * @param lifeTime The life time of the signed certificate
+	 * @return Certificate chain including the Bootstrap Root certificate and X509V3 certificate signed by Bootstrap
+	 * 
+	 * @throws InvalidKeyException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchProviderException
+	 * @throws SignatureException
+	 * @throws CertificateParsingException
+	 */
 	@SuppressWarnings("deprecation")
 	public static X509Certificate[] buildChain(PKCS10CertificationRequest request, X509Certificate rootCert, KeyPair rootPair, long lifeTime) throws
 	InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, CertificateParsingException{
@@ -238,11 +275,13 @@ public class CertificateOperations {
 	}
 	
 	/**
+	 * Write the Certificate out in PEM format
+	 * 
 	 * For certificates, the available formats are PEM, DER and PKCS12 
 	 * In general, the PEM formats are mostly used in the Unix world, 
 	 * PCKS12 in the Microsoft world and DER in the Java world.
 	 * 
-	 * @param cert
+	 * @param cert The certificate that will be write out
 	 */
 	public void standOutInPemEncoded(X509Certificate cert){
 		PEMWriter pemWrt = new PEMWriter(new OutputStreamWriter(System.out));

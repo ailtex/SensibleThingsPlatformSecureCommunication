@@ -1,7 +1,5 @@
 package se.sensiblethings.disseminationslayer.communication.security.messages.payload;
 
-import javax.crypto.SecretKey;
-
 
 public class SecretKeyPayload extends MessagePayload{
 

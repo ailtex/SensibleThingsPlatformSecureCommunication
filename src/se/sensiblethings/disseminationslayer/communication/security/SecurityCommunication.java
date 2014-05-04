@@ -1,17 +1,11 @@
 package se.sensiblethings.disseminationslayer.communication.security;
 
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.util.Enumeration;
-
 import se.sensiblethings.disseminationlayer.communication.Communication;
 import se.sensiblethings.disseminationlayer.communication.DestinationNotReachableException;
 import se.sensiblethings.disseminationlayer.communication.Message;
 import se.sensiblethings.disseminationlayer.communication.rudp.RUDPCommunication;
 import se.sensiblethings.disseminationlayer.disseminationcore.GetMessage;
 import se.sensiblethings.disseminationlayer.disseminationcore.MessageListener;
-import se.sensiblethings.disseminationlayer.lookupservice.kelips.KelipsLookup;
 import se.sensiblethings.disseminationslayer.communication.security.configuration.SecurityConfiguration;
 import se.sensiblethings.disseminationslayer.communication.security.messagehandler.MessageHandler;
 import se.sensiblethings.interfacelayer.SensibleThingsNode;
@@ -28,6 +22,23 @@ import se.sensiblethings.disseminationslayer.communication.security.messages.Sec
 import se.sensiblethings.disseminationslayer.communication.security.messages.SessionKeyExchangeMessage;
 import se.sensiblethings.disseminationslayer.communication.security.messages.SessionKeyResponseMessage;
 
+/**
+ * SecurityCommunication.java
+ * 
+ * This class extends the <code>Communication</code> class, to make itself to be one of the communication
+ * that could be used. While it doesn't really implement its own communication, it uses the RUDP as its bottom
+ * communication implementation. It also implements the <code>MessageListener</code> to acts as a middlerware to
+ * exchange the certificates and session keys between each node.
+ * 
+ * <code>initCommunicationPort</code> specify the real communication(RUDP) port, default is 0;</p>
+ * <code>initSecurityLevel</code>  specify the security level pre-defined in the configuration file 
+ * (SecurityConfiguration.xml). The default setting is 2, which uses the RC4 as the symmetric encryption.</p> 
+ * <code> uci </code> specify the itself uci. It should be pre-defined 
+ * before the instantiation of the <code>SensibleThingsPlatform</code>.</p>
+ * 
+ * @author Hao
+ *
+ */
 public class SecurityCommunication extends Communication implements MessageListener{
 	
 	private Communication communication = null;
@@ -35,11 +46,21 @@ public class SecurityCommunication extends Communication implements MessageListe
 	private SecurityManager securityManager = null;
 	private MessageHandler messageHandler = null;
 	
-	private int communicationPort = 0;
 	private SensibleThingsNode localSensibleThingsNode = null;
 	
+	/**
+	 * Initial communication port that RUDP used
+	 */
 	public static int initCommunicationPort = 0;
 	
+	/**
+	 * Initial Security Level
+	 */
+	public static int initSecurityLevel = 2;
+
+	/**
+	 * itself UCI
+	 */
 	public static String uci = null;
 	
 	public SecurityCommunication(){
@@ -47,14 +68,15 @@ public class SecurityCommunication extends Communication implements MessageListe
 	}
 	
 	public SecurityCommunication(int localPort){
-		// set up the communication with rudp
+		// set up the communication as RUDP
 		RUDPCommunication.initCommunicationPort = initCommunicationPort;
 		communication = new RUDPCommunication();
+		// specify the local SensibleThingsNode
 		this.localSensibleThingsNode = communication.getLocalSensibleThingsNode();
-		
+		// Combine self MessageLeisteners to RUDP's
 		this.communication.setMessageListeners(super.getMessageListeners());
 		
-		//Register our own message types in the post office
+		//Register messages for security communication
 		communication.registerMessageListener(CommunicationShiftMessage.class.getName(), this);
 		communication.registerMessageListener(RegistrationRequestMessage.class.getName(), this);
 		communication.registerMessageListener(RegistrationResponseMessage.class.getName(), this);
@@ -68,7 +90,7 @@ public class SecurityCommunication extends Communication implements MessageListe
 		communication.registerMessageListener(SecureMessage.class.getName(), this);
 		
 		
-		config = new SecurityConfiguration("config/SecurityConfiguration.xml", 2);
+		config = new SecurityConfiguration("config/SecurityConfiguration.xml", initSecurityLevel);
 		securityManager = new SecurityManager(config);
 		messageHandler = new MessageHandler(communication, securityManager, config);
 		
@@ -88,11 +110,13 @@ public class SecurityCommunication extends Communication implements MessageListe
 		
 	}
 	
+	/**
+	 * Send out the messages with specified communication type
+	 * @param message the message that will be sent
+	 */
 	@Override
 	public void sendMessage(Message message)
 			throws DestinationNotReachableException {
-//		System.out.println("[Send Message] : " + message);
-		
 		// if this message will be sent to itself
 		// it won't be encrypt
 		if(message.getToNode().getAddress().equals(communication.getLocalSensibleThingsNode().getAddress())){
@@ -103,13 +127,10 @@ public class SecurityCommunication extends Communication implements MessageListe
 			if(message.toUci == null){
 				message.toUci = messageHandler.getUciFromCache(message.getToNode().getAddress());
 				
+				// append the Uci to GetMessage
 				if(message instanceof GetMessage){
 					message.toUci = ((GetMessage) message).uci;
-					
-					System.out.println(((GetMessage) message).uci + " " + message);
-					System.out.println(((GetMessage) message).toUci);
 				}
-//				System.out.println("[Append UCI] " + message.toUci + " --> " + message);
 			}
 			
 			messageHandler.sendSecureMassage(message, message.toUci, message.getToNode());

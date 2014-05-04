@@ -1,30 +1,18 @@
 package se.sensiblethings.disseminationslayer.communication.security.messagehandler;
 
-import java.nio.ByteBuffer;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
-import javax.crypto.SecretKey;
-
 import org.apache.commons.lang.SerializationUtils;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
-import org.bouncycastle.util.encoders.Base64;
-
 import se.sensiblethings.disseminationlayer.communication.Communication;
 import se.sensiblethings.disseminationlayer.communication.DestinationNotReachableException;
 import se.sensiblethings.disseminationlayer.communication.Message;
-import se.sensiblethings.disseminationlayer.communication.MessageSerializer;
 import se.sensiblethings.disseminationlayer.communication.rudp.RUDPCommunication;
-import se.sensiblethings.disseminationlayer.communication.serializer.ObjectSerializer;
 import se.sensiblethings.disseminationlayer.communication.ssl.SslCommunication;
-import se.sensiblethings.disseminationlayer.disseminationcore.DisseminationCore;
 import se.sensiblethings.disseminationlayer.lookupservice.kelips.KelipsLookup;
 import se.sensiblethings.disseminationslayer.communication.security.configuration.SecurityConfiguration;
 import se.sensiblethings.disseminationslayer.communication.security.messages.CertificateAcceptedResponseMessage;
@@ -45,22 +33,36 @@ import se.sensiblethings.disseminationslayer.communication.security.messages.pay
 import se.sensiblethings.disseminationslayer.communication.security.messages.payload.ResponsePayload;
 import se.sensiblethings.disseminationslayer.communication.security.messages.payload.SecretKeyPayload;
 import se.sensiblethings.interfacelayer.SensibleThingsNode;
-import se.sensiblethings.interfacelayer.SensibleThingsPlatform;
 
+/**
+ * MessageHandler.java
+ * 
+ * This class handles all communication messages in this protocol.
+ * 
+ * @author Hao
+ *
+ */
 public class MessageHandler {
 
-	Communication communication = null;
+	private Communication communication = null;
+	private SecurityManager securityManager = null;
+	private SecurityConfiguration config = null;
+	// Temporarily store the up going secure messages
+	private Map<String, Vector<SecureMessage>> postOffice = null;
+	// cache the UCI corresponding to net address
+	private Map<String, String> uciCache = null;
 	
-	SecurityManager securityManager = null;
-	SecurityConfiguration config = null;
-	
-	MessageSerializer messageSerializer = new ObjectSerializer();
-	
-	Map<String, Vector<SecureMessage>> postOffice = null;
-	Map<String, String> uciCache = null;
-	
+	/**
+	 * The password that protect the key and key store safe
+	 */
 	public static final char[] password = "password".toCharArray();
 	
+	/**
+	 * Initialization of the message handler
+	 * @param communication the communication that bottom level used
+	 * @param securityManager the manager provides all kinds of security operations
+	 * @param config the security configuration
+	 */
 	public MessageHandler(Communication communication, 
 			SecurityManager securityManager, SecurityConfiguration config){
 
@@ -73,10 +75,21 @@ public class MessageHandler {
 		uciCache = new HashMap<String, String>();
 	}
 	
+	/**
+	 * Set the configuration
+	 * @param config the security configuration containing kinds of parameters
+	 */
 	public void setSecuiryConfiguraton(SecurityConfiguration config){
 		this.config = config;
 	}
 	
+	/**
+	 * Using the itself UCI, it first initialize the key store with generating its key pair 
+	 * and self signed certificate. Then it check whether it has the signed certificate, it will
+	 * send the registration request to the bootstrap if not.
+	 * 
+	 * @param uci Itself UCI
+	 */
 	public void securityRegister(String uci){
 
 		// Initialize the key Store, with generating its key pair and self signed certificate
@@ -101,11 +114,11 @@ public class MessageHandler {
 	
 	
 	/**
-	 * Create a SSL connection with bootstrap node
+	 * Create a SSL connection with bootstrap node</p>
 	 * 
 	 * (1.1) C->B: Create a SSL Session with B
 	 * 
-	 * @param uci the uci who own the bootstrap node
+	 * @param uci the UCI who own the bootstrap node
 	 * @param node the node that SSL connection is established with 
 	 */
 	public void createSslConnection(String uci, SensibleThingsNode node){
@@ -124,6 +137,11 @@ public class MessageHandler {
 		
 	}
 	
+	/**
+	 * The system changes the communication type when it received corresponding signal
+	 * 
+	 * @param csm the communication shift message
+	 */
 	public void handleCommunicationShiftMessage(CommunicationShiftMessage csm) {
 		if(csm.getSignal() != null){
 			transformCommunication(csm.getSignal());
@@ -132,7 +150,7 @@ public class MessageHandler {
 	}
 	
 	/**
-	 * register the self uci to bootstrap node
+	 * Register the self uci to bootstrap node</p>
 	 *  
 	 * (1.2) C->B: IDC || Request || TS1
 	 *  
@@ -161,11 +179,11 @@ public class MessageHandler {
 	}
 	
 	/**
-	 * Handle Registration Request Message, sends back an registration response message
+	 * Handle Registration Request Message, sends back an registration response message </p>
 	 * 
 	 * (1.3) B->C: IDB || PUB || E(PRB, [IDC || Request || TS1])
 	 * 
-	 * @param rrm
+	 * @param rrm the registration request message
 	 */
 	public void handleRegistrationRequestMessage(
 			RegistrationRequestMessage rrm) {
@@ -193,11 +211,11 @@ public class MessageHandler {
 	}
 	
 	/**
-	 * Handle Registration Response Message
+	 * Handle Registration Response Message </p>
 	 * 
 	 * (1.4) C->B: E(PUB, [IDC || N1 ]) || CERTc (IDC || PUC || E(PRC, H(IDC || PUC)) ) 
 	 * 
-	 * @param rrm
+	 * @param rrm the registration response message
 	 */
 	public void handleRegistrationResponseMessage(
 			RegistrationResponseMessage rrm) {
@@ -238,51 +256,25 @@ public class MessageHandler {
 			crm.setUci(securityManager.asymmetricEncryptMessage(
 					rrm.fromUci, securityManager.getMyUci().getBytes(), config.getAsymmetricAlgorithm()));
 			
-			
-//			CertificateRequestPayload payload = 
-//					new CertificateRequestPayload(securityManager.getMyUci(), rrm.fromUci);
-			
-//			payload.setNonce(nonce);
-			
-//			// use apache.commons.lang.SerializationUtils to serialize objects
-//			byte[] plainText = SerializationUtils.serialize(payload);
-//			
-//			
-//			// encrypt message
-//			byte[] cipherText = securityManager.asymmetricEncryptMessage(rrm.fromUci, plainText, config.getAsymmetricAlgorithm());
-//			
-//			// set the encrypted payload
-//			crm.setPayload(cipherText);
-//			
 			sendMessage(crm);
 			
 		}else{
-			System.out.println("[Error] Fake signature");
+			System.err.println("[Error] Fake signature");
 		}
 	}
 
 	/**
-	 * Handle Certificate Request Message
+	 * Handle Certificate Request Message</p>
 	 * 
 	 * (1.5) B->C: E(PUC, K ) || E(K, [Certification || N1 || N2])
 	 * 
-	 * @param crm
+	 * @param crm certificate request message
 	 */
 	public void handleCertificateRequestMessage(CertificateRequestMessage crm) {
 //		System.out.println("[Handle Certificate Request Message ]" + " from " + crm.fromUci);
-		
-//		byte[] cipherText = crm.getPayload();
-		
-		// decrypt the payload
-//		byte[] plainText = securityManager.asymmetricDecryptMessage(cipherText, 
-//				config.getAsymmetricAlgorithm());
-//		
-//		// deserialize the payload
-//		CertificateRequestPayload payload = (CertificateRequestPayload)SerializationUtils.deserialize(plainText);
-//		
+			
 		// Get the certificate signing request
 		PKCS10CertificationRequest certRequest = crm.getCertRequest();
-		
 		
 		// Get the uci
 		String uci = new String(securityManager.asymmetricDecryptMessage(crm.getUci(), config.getAsymmetricAlgorithm(), password));
@@ -333,17 +325,17 @@ public class MessageHandler {
 			sendMessage(certRespMesg);
 			
 		}else{
-			System.out.println("[Handle Certificate Request Message] " + "Ceritificate Signing Request Error");
+			System.err.println("[Handle Certificate Request Message] " + "Ceritificate Signing Request Error");
 		}
 		
 	}
 	
 	/**
-	 * Handle Certificate Response Message
+	 * Handle Certificate Response Message </p>
 	 * 
 	 * (1.6) C->B : E(K, N2)
 	 * 
-	 * @param crm
+	 * @param crm the certificate response message
 	 */
 	public void handleCertificateResponseMessage(
 			CertificateResponseMessage crm) {
@@ -403,10 +395,15 @@ public class MessageHandler {
 			System.out.println("Registration finished!");
 			
 		}else{
-			System.out.println("[Hanle Certificate Response Message] Wrong Nonce !");
+			System.err.println("[Hanle Certificate Response Message] Wrong Nonce !");
 		}
 	}
 	
+	/**
+	 * Handle the certificate accepted response message
+	 * 
+	 * @param carm the certificate accepted response message
+	 */
 	public void handleCertificateAcceptedResponseMessage(
 			CertificateAcceptedResponseMessage carm) {
 		
@@ -431,14 +428,14 @@ public class MessageHandler {
 	
 	
 	/**
-	 * Send encrypt message
+	 * Send encrypt message</p>
 	 * 
 	 * (2.1) if (IDD, KS, Lifetime) exist, and Lifetime is valid
 	 *       C->D: E(KS, IDC || M || E(PRC, [H(M)] ) )
 	 * 
-	 * @param message
-	 * @param toUci
-	 * @param toNode
+	 * @param message the up going message
+	 * @param toUci the UCI of the receiver
+	 * @param toNode the node of the receiver
 	 */
 	public void sendSecureMassage(Message message, String toUci, SensibleThingsNode toNode){   
 		
@@ -447,8 +444,7 @@ public class MessageHandler {
 				toNode, communication.getLocalSensibleThingsNode());
 		
 		secureMessage.setPayload(SerializationUtils.serialize(message));
-//		secureMessage.setPayload(messageSerializer.serializeMessage(message));
-		
+	
 		if(securityManager.isSymmetricKeyValid(toUci, config.getSymmetricKeyLifeTime())){
 			sendToPostOffice(secureMessage);
 			securityManager.encapsulateSecueMessage(postOffice, toUci, password, password);
@@ -463,6 +459,12 @@ public class MessageHandler {
 		}
 	}
 	
+	/**
+	 * Handle the received secure message
+	 * 
+	 * @param sm the received secure message
+	 * @return then message encapsulated in the secure message
+	 */
 	public Message handleSecureMessage(SecureMessage sm){
 		byte[] signature = sm.getSignature();
 		byte[] payload = securityManager.decapsulateSecureMessage(sm, password);
@@ -479,12 +481,12 @@ public class MessageHandler {
 	}
 
 	/**
-	 * Exchange Session Key
-	 * (2.2) If (IDD, KS, Lifetime) temporary key store doesn���t exist, or Lifetime is invalid
+	 * Exchange Session Key</p>
+	 * (2.2) If (IDD, KS, Lifetime) temporary key store doesn't exist, or Lifetime is invalid
 	 *       C->D : E(PUD, KS) || E(PRC, H ([KS])) || E(KS, IDC || N1) || CertificateC
 	 *              
-	 * @param toUci
-	 * @param toNode
+	 * @param toUci the UCI of the receiver
+	 * @param toNode the node of the receiver
 	 */
 	private void exchangeSessionKey(String toUci, SensibleThingsNode toNode) {
 		
@@ -530,24 +532,17 @@ public class MessageHandler {
 	}
 	
 	/**
-	 * Handle session key exchange message, sending back session key response message
+	 * Handle session key exchange message, sending back session key response message</p>
 	 * 
 	 * (2.3) D: store (IDC, KS, Lifetime) in temporary key store
 	 *       D->C : E(KS, payload) || E(PRD, H(payload))
 	 *       payload = IDD || IDC || N1 || N2
 	 * 
-	 * @param skxm
+	 * @param skxm session key exchange message
 	 */
 	public void handleSessionKeyExchangeMessage(SessionKeyExchangeMessage skxm) {
 		
 //		System.out.println("[Handle Session Key Exchange Message] " + skxm);
-		
-		// 1, check the source id
-		// 2, check if the ID exist
-		// 3, check if the certificate valid
-		// 4, decrypt the session key and check its signature
-		
-		// Get the certificate
 		
 		boolean isValid = false;
 		
@@ -628,15 +623,14 @@ public class MessageHandler {
 	}
 	
 	/**
-	 * Handle session key response message
+	 * Handle session key response message</p>
 	 * 
 	 * (2.4) C->D : E(KS, M || N2 || E(PRC, H(M)))
 	 * 
-	 * @param skrm
+	 * @param skrm the session key response message
 	 */
 	public void handleSessionKeyResponseMessage(SessionKeyResponseMessage skrm) {
 //		System.out.println("[Handle Session Key Response Message] " + skrm);
-		
 		
 		byte[] payload = securityManager.decryptPayload(skrm.fromUci, skrm.getIv(),
 				skrm.getPayload(), config.getSymmetricMode(), password);
@@ -660,13 +654,13 @@ public class MessageHandler {
 	}
 	
 	/**
-	 * If (IDD, PUD, Validation) doesn���t exist or invalid, Exchange certificate
+	 * If (IDD, PUD, Validation) doesn't exist or invalid, Exchange certificate</p>
 	 * 
 	 * (3.1) C->D : Payload || E(PRC,[H(payload)])
 	 *            Payload = IDC || CertificateC || TS1 
 	 * 
-	 * @param toUci
-	 * @param toNode
+	 * @param toUci the UCI of the receiver
+	 * @param toNode the node of the receiver
 	 */
 	private void exchangeCertificate(String toUci, SensibleThingsNode toNode) {
 		CertificateExchangeMessage cxm = new CertificateExchangeMessage(toUci, securityManager.getMyUci(),
@@ -686,13 +680,13 @@ public class MessageHandler {
 	
 	
 	/**
-	 * Handle Certificate Exchange Message
+	 * Handle Certificate Exchange Message</p>
 	 * 
 	 * (3.2) D : verify the CertificateC
 	 *    
 	 *     D->C : E(PUC, Payload) || E(PRC, H(Payload)) || CertificateD
 	 *            Payload = IDD || TS1 
-	 * @param cxm
+	 * @param cxm the certificate exchange message
 	 */
 	public void handleCertificateExchangeMessage(CertificateExchangeMessage cxm) {
 //		System.out.println("[Handle Certificate Exchange Message] " + cxm);
@@ -740,19 +734,14 @@ public class MessageHandler {
 	 * 
 	 * (3.3) C : verify the CertificateD
 	 *       C->D : E(PUD, E(PRC, [KS || Lifetime])) || E(KS, [IDC || N1])
-	 * @param cxrm
+	 * @param cxrm Certificate exchange response message
 	 */
 	public void handleCertificateExchangeResponseMessage(
 			CertificateExchangeResponseMessage cxrm) {
 //		System.out.println("[Handle Certificate Exchange Response Message] " + cxrm);
 		
 //		//Decapsulte the Certificate
-//		byte[] encryptPayload = cxrm.getPayload();
-//		byte[] payload = securityManager.asymmetricDecryptMessage(encryptPayload, config.getAsymmetricAlgorithm());
-//		
-//		CertificateExchangePayload cxp = (CertificateExchangePayload)SerializationUtils.deserialize(payload);
-//		Certificate cert = cxp.getCert();
-//		
+	
 		byte[] payload = securityManager.asymmetricDecryptMessage(cxrm.getPayload(), config.getAsymmetricAlgorithm(), password);
 		Certificate cert = cxrm.getCert();
 		
@@ -781,6 +770,11 @@ public class MessageHandler {
 		}
 	}
 	
+	/**
+	 * Cache the address from the receiver and its corresponding UCI
+	 * @param address the address
+	 * @param uci the corresponding UCI
+	 */
 	public void addToUciCache(String address, String uci){
 		if(uciCache.containsKey(address)){
 			uciCache.remove(address);
@@ -788,10 +782,19 @@ public class MessageHandler {
 		uciCache.put(address, uci);
 	}
 
+	/**
+	 * Get the UCI corresponding the specified address
+	 * @param address
+	 * @return the UCI corresponding the specified address
+	 */
 	public String getUciFromCache(String address){
 		return uciCache.get(address);
 	}
 	
+	/**
+	 * Temporarily store the secure message
+	 * @param sm the secure message to be stored
+	 */
 	private void sendToPostOffice(SecureMessage sm){
 		String toUci = sm.toUci;
 		if(postOffice.containsKey(toUci)){
@@ -802,6 +805,10 @@ public class MessageHandler {
 		}
 	}
 	
+	/**
+	 * Send out the secure message temporarily stored in post office
+	 * @param toUci the UCI of the receiver
+	 */
 	private void sendOutSecureMessage(String toUci) {
 		if(postOffice.containsKey(toUci)){
 			Vector<SecureMessage> msgs = postOffice.get(toUci);
@@ -815,6 +822,10 @@ public class MessageHandler {
 		}
 	}
 	
+	/**
+	 * Transform the communication, normally between SSL and RUDP.
+	 * @param communicationType the specified communication type
+	 */
 	private void transformCommunication(String communicationType){
 //		System.out.println("[" + securityManager.getMyUci() + 
 //				" : Communication] communication type shift from "+ communication +  " to "+ communicationType + " mode");
@@ -860,6 +871,11 @@ public class MessageHandler {
 //				" : Communication] communication shift to " + communication );
 	}
 	
+	/**
+	 * Set up the new communication
+	 * 
+	 * @param communicationType specified communication type
+	 */
 	private void toNewCommunicaiton(String communicationType){
 		Class<?> communicationLoader;
 		try {
@@ -870,6 +886,10 @@ public class MessageHandler {
 		}
 	}
 	
+	/**
+	 * Send out each message
+	 * @param message the message to be send out
+	 */
 	private void sendMessage(Message message){
 		try {
 			communication.sendMessage(message);

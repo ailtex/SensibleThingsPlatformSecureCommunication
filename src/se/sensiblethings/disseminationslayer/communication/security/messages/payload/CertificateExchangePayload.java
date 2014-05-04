@@ -1,8 +1,5 @@
 package se.sensiblethings.disseminationslayer.communication.security.messages.payload;
 
-import java.security.cert.Certificate;
-import java.util.Date;
-
 public class CertificateExchangePayload extends CertificatePayload{
 
 	/**

@@ -5,6 +5,10 @@ import se.sensiblethings.interfacelayer.SensibleThingsNode;
 
 public class SecureMessage extends Message{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5423368625845462035L;
 	public String fromUci;
 	public String toUci;
 	

@@ -1,7 +1,5 @@
 package se.sensiblethings.disseminationslayer.communication.security.messages.payload;
 
-import java.io.Serializable;
-
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 
 public class CertificateRequestPayload extends MessagePayload{

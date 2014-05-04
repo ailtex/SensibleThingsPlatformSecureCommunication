@@ -9,10 +9,7 @@ import java.util.Random;
 
 import org.bouncycastle.util.encoders.Base64;
 
-import se.sensiblethings.addinlayer.AddInManager;
 import se.sensiblethings.disseminationlayer.communication.Communication;
-import se.sensiblethings.disseminationlayer.communication.rudp.RUDPCommunication;
-import se.sensiblethings.disseminationlayer.communication.ssl.SslCommunication;
 import se.sensiblethings.disseminationlayer.lookupservice.LookupService;
 import se.sensiblethings.disseminationlayer.lookupservice.kelips.KelipsLookup;
 import se.sensiblethings.disseminationslayer.communication.security.SecurityCommunication;
