@@ -16,7 +16,8 @@ This means you can create your own applications (even commercial ones) using the
 1. Download / Clone this project
 2. Download the platfrom fundamental source code from [here](http://sensiblethings.se/files/SensibleThingsPlatformBeta4Source.zip) (2013-10-24 Public Beta 4) 
 3. Modify two files:
-`se.sensiblethings.disseminationlayer.communication.Communication.java`
+
+(1)`se.sensiblethings.disseminationlayer.communication.Communication.java`
 
 Adds set and get functions:
 
@@ -28,11 +29,18 @@ Adds set and get functions:
 			HashMap<String, Vector<MessageListener>> messageListeners) {
 		this.messageListeners = messageListeners;
 	}
-	`se.sensiblethings.disseminationlayer.communication.Message.java`
+	
+Adds one public static string
+	
+	public final static String SECURITY_COM = "se.sensiblethings.disseminationslayer.communication.security.SecurityCommunication";
+
+(2)`se.sensiblethings.disseminationlayer.communication.Message.java`
 Adds two public String variables
 
 	public String fromUci;
 	public String toUci;
+
+
 
 Finally, At `se.sensiblethings.disseminationslayer.communication.security.test` package, there are three test demos. 
 
