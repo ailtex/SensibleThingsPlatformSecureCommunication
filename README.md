@@ -34,6 +34,6 @@ Adds two public String variables
 	public String fromUci;
 	public String toUci;
 
-4. At `se.sensiblethings.disseminationslayer.communication.security.test` package, there are three test demos. 
+Finally, At `se.sensiblethings.disseminationslayer.communication.security.test` package, there are three test demos. 
 
 __Remember that bootstrap node shoud always run firtly. And when you change the bootstrap UCI, the configuration file should also have the corresponding modification.__
