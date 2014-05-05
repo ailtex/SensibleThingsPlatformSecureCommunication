@@ -14,7 +14,7 @@ This means you can create your own applications (even commercial ones) using the
 
 ## Usage
 1. Download / Clone this project
-2. Download the platfrom fundamental source code from [here](http://sensiblethings.se/files/SensibleThingsPlatformBeta4Source.zip) (2013-10-24 Public Beta 4) 
+2. Download the platfrom fundamental source code from [here](http://sensiblethings.se/files/SensibleThingsPlatformBeta4Source.zip) (2013-10-24 Public Beta 4). And include these two grojects into your build path. 
 3. Modify two files:
 
 (1)`se.sensiblethings.disseminationlayer.communication.Communication.java`
