@@ -38,7 +38,7 @@ public class SecurityNode2 implements SensibleThingsListener, Runnable{
 		KelipsLookup.bootstrapIp = getLocalHostAddress();
 		KelipsLookup.bootstrap = false;
 		
-		SecurityCommunication.initCommunicationPort = 49891;
+		SecurityCommunication.initCommunicationPort = 0;
 		SecurityCommunication.uci = myUci;
 		platform = new SensibleThingsPlatform(LookupService.KELIPS, Communication.SECURITY_COM, this);
 		

@@ -57,7 +57,12 @@ public class SecurityCommunication extends Communication implements MessageListe
 	 * Initial Security Level
 	 */
 	public static int initSecurityLevel = 2;
-
+	
+	/**
+	 * The file path of the security configuration file
+	 */
+	public static String SECURITY_CONFIG_FILE_PATH = "config/SecurityConfiguration.xml";
+	
 	/**
 	 * itself UCI
 	 */
@@ -90,7 +95,7 @@ public class SecurityCommunication extends Communication implements MessageListe
 		communication.registerMessageListener(SecureMessage.class.getName(), this);
 		
 		
-		config = new SecurityConfiguration("config/SecurityConfiguration.xml", initSecurityLevel);
+		config = new SecurityConfiguration(SECURITY_CONFIG_FILE_PATH, initSecurityLevel);
 		securityManager = new SecurityManager(config);
 		messageHandler = new MessageHandler(communication, securityManager, config);
 		

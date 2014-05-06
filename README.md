@@ -45,3 +45,6 @@ Adds two public String variables
 Finally, At `se.sensiblethings.disseminationslayer.communication.security.test` package, there are three test demos. 
 
 __Remember that bootstrap node shoud always run firtly. And when you change the bootstrap UCI, the configuration file should also have the same modification.__
+
+## Suggestions
+- Replace the UCI by the SensibleThingsNode, as the UCI is not the identity of the nodes. UCI is designed used for sensors.
